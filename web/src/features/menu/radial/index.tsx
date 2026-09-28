@@ -9,40 +9,65 @@ import type { RadialMenuItem } from '../../../typings';
 import { useLocales } from '../../../providers/LocaleProvider';
 import LibIcon from '../../../components/LibIcon';
 
-const useStyles = createStyles((theme) => ({
+// One Drop RP palette — sampled from the reference radial screenshot.
+const OD = {
+  sector: '#141b22', // slab
+  sectorHover: '#261c28', // plum wash
+  seam: '#20272e', // gaps between sectors + outer rim
+  core: '#10161c', // centre button
+  coreHover: '#171e26',
+  magenta: '#952551', // icons + hovered label
+  label: '#b9abb8', // idle label (muted lilac)
+  ringFrom: '#c8405a', // centre ring, top-right
+  ringTo: '#8e5627', // centre ring, bottom-left
+  gold: '#b8862b', // centre icon
+};
+
+const useStyles = createStyles(() => ({
   wrapper: {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: 'translate(-50%, -50%)',
+    filter: 'drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45))',
   },
   sector: {
-    fill: theme.colors.dark[6],
-    color: theme.colors.dark[0],
+    fill: OD.sector,
+    color: OD.magenta,
 
-    '&:hover': {
-      fill: theme.fn.primaryColor(),
-      cursor: 'pointer',
-      '> g > text, > g > svg > path': {
-        fill: '#fff',
-      },
+    '> path': {
+      transition: 'fill 120ms ease',
     },
     '> g > text': {
-      fill: theme.colors.dark[0],
+      fill: OD.label,
       strokeWidth: 0,
+      transition: 'fill 120ms ease',
+    },
+    '> g > svg > path': {
+      fill: OD.magenta,
+    },
+
+    '&:hover': {
+      cursor: 'pointer',
+      '> path': {
+        fill: OD.sectorHover,
+      },
+      '> g > text': {
+        fill: OD.magenta,
+      },
     },
   },
   backgroundCircle: {
-    fill: theme.colors.dark[6],
+    fill: OD.seam,
   },
   centerCircle: {
-    fill: theme.fn.primaryColor(),
-    color: '#fff',
-    stroke: theme.colors.dark[6],
-    strokeWidth: 4,
+    fill: OD.core,
+    stroke: 'url(#odRadialRing)',
+    strokeWidth: 3,
+    transition: 'fill 120ms ease',
     '&:hover': {
       cursor: 'pointer',
-      fill: theme.colors[theme.primaryColor][theme.fn.primaryShade() - 1],
+      fill: OD.coreHover,
     },
   },
   centerIconContainer: {
@@ -53,7 +78,8 @@ const useStyles = createStyles((theme) => ({
     pointerEvents: 'none',
   },
   centerIcon: {
-    color: '#fff',
+    color: OD.gold,
+    opacity: 0.8,
   },
 }));
 
@@ -152,6 +178,13 @@ const RadialMenu: React.FC = () => {
             viewBox="0 0 350 350"
             transform="rotate(90)"
           >
+            <defs>
+              {/* svg is rotated 90°, so local top-left → bottom-right renders as top-right → bottom-left */}
+              <linearGradient id="odRadialRing" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor={OD.ringFrom} />
+                <stop offset="100%" stopColor={OD.ringTo} />
+              </linearGradient>
+            </defs>
             {/* Fixed issues with background circle extending the circle when there's less than 3 items */}
             <g transform="translate(175, 175)">
               <circle r={175} className={classes.backgroundCircle} />
@@ -208,7 +241,6 @@ const RadialMenu: React.FC = () => {
                     <text
                       x={iconX}
                       y={iconY + (splitTextIntoLines(item.label, 15).length > 2 ? 15 : 28)}
-                      fill="#fff"
                       textAnchor="middle"
                       fontSize={calculateFontSize(item.label)}
                       pointerEvents="none"
@@ -242,10 +274,9 @@ const RadialMenu: React.FC = () => {
           </svg>
           <div className={classes.centerIconContainer}>
             <LibIcon
-              icon={!menu.sub && menu.page < 2 ? 'xmark' : 'arrow-rotate-left'}
+              icon={!menu.sub && menu.page < 2 ? 'xmark' : 'arrow-left'}
               fixedWidth
               className={classes.centerIcon}
-              color="#fff"
               size="2x"
             />
           </div>
